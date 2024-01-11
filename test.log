@@ -1,0 +1,17 @@
+{"level":"DEBUG","ts":"2023-11-30T16:24:55.973+0800","caller":"simple/main.go:15","msg":"debug"}
+{"level":"INFO","ts":"2023-11-30T16:24:55.974+0800","caller":"simple/main.go:16","msg":"info"}
+2023-11-30T16:24:55.974+0800	WARN	simple/main.go:18	warning
+2023-11-30T16:24:55.974+0800	ERROR	simple/main.go:19	error
+2023-11-30T16:24:55.974+0800	INFO	simple/main.go:22	test	{"k": "1"}
+{"level":"DEBUG","ts":"2023-11-30T16:46:13.527+0800","caller":"simple/main.go:15","msg":"debug"}
+{"level":"INFO","ts":"2023-11-30T16:46:13.528+0800","caller":"simple/main.go:16","msg":"info"}
+2023-11-30T16:46:13.528+0800	WARN	simple/main.go:18	warning
+2023-11-30T16:46:13.528+0800	ERROR	simple/main.go:19	error
+2023-11-30T16:46:13.528+0800	INFO	simple/main.go:22	test	{"k": "1"}
+{"level":"DEBUG","ts":"2024-01-11T17:21:31.120+0800","caller":"simple/main.go:15","msg":"debug"}
+{"level":"INFO","ts":"2024-01-11T17:21:31.121+0800","caller":"simple/main.go:16","msg":"info"}
+2024-01-11T17:21:31.121+0800	WARN	simple/main.go:18	warning
+2024-01-11T17:21:31.121+0800	ERROR	simple/main.go:19	error
+2024-01-11T17:21:31.121+0800	INFO	simple/main.go:22	test	{"k": "1"}
+2024-01-11T17:21:40.181+0800	ERROR	simple/main.go:19	error
+2024-01-11T17:21:47.301+0800	ERROR	simple/main.go:19	error
