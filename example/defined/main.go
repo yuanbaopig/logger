@@ -1,25 +1,18 @@
 package main
 
-import (
-	"github.com/yuanbaopig/logger"
-	"go.uber.org/zap"
-	"os"
-)
+import "github.com/yuanbaopig/logger"
 
 func main() {
 
-	opt := &logger.Options{
-		OutputPath:    os.Stdout,
-		Level:         "debug",
-		DisableCaller: true,
-	}
+	log := logger.Init(&logger.Options{
+		Level:       "debug",
+		Format:      "json",
+		OutputPaths: []string{"stdout"},
+	})
 
-	newSlog := logger.Init(opt)
-	defer newSlog.Sync()
+	log.LumberjackLogger("test.log")
 
-	newSlog.Info("test")
+	log.Info("test")
 
-	newSlog.SetOptions(logger.WithFields(zap.Int("userID", 10), zap.String("requestID", "fbf54504")))
-
-	newSlog.Info("test1")
+	//logger.WithFields()
 }

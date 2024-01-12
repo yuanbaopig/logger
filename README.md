@@ -4,9 +4,9 @@
 
 - 支持日志级别：`Debug`、`Info`、`Warn`、`Error`、`Panic`、`Fatal`。默认Info级别
 - 支持自定义配置。
-- 支持文件名和行号。
-- 支持输出到标准输出和文件，可以同时输出到多个地方。
-- 支持 `JSON` 和 `Text` 两种日志格式。
+- 支持Caller文件名和行号。
+- 支持输出到标准输出和文件，可以同时输出到多个对象。
+- 支持 `JSON` 和 `Console` 两种日志格式。
 - 支持结构化日志记录。
 - **支持Context（业务定制）**
 - 支持动态开关Debug日志
@@ -57,7 +57,6 @@ func main() {
 	defer newSlog.Sync()
 
 	newSlog.Info("test")
-
 }
 ```
 
@@ -65,10 +64,40 @@ func main() {
 
 ### 结构化日志输出
 
+**结构化**
+
+```go
+package main
+
+import (
+	"github.com/yuanbaopig/logger"
+	"go.uber.org/zap"
+)
+
+func main() {
+
+	logger.SetOptions(
+		logger.WithFields(zap.String("app", "myApp"), zap.Int("version", 1)), // 日志结构化
+
+	)
+	lg := zap.L().Sugar()
+	lg.Debug("debug")
+	lg.Info("info")
+	lg.Warn("warning")
+	lg.Error("error")
+}
+```
+
+
+
+**临时结构化**
+
 `marmotedu/log` 也支持结构化日志打印，例如：
 
 ```go
+// logger 的使用方式
 log.Info("This is a info message", log.Int32("int_key", 10))
+// sugarlogger 的使用方式
 log.Infow("Message printed with Errorw", "X-Request-ID", "fbf54504-64da-4088-9b86-67824a7fb508") 
 ```
 
@@ -80,8 +109,6 @@ log.Infow("Message printed with Errorw", "X-Request-ID", "fbf54504-64da-4088-9b8
 ```
 
 `log.Info` 这类函数需要指定具体的类型，以最大化的提高日志的性能。`log.Infow` 这类函数，不用指定具体的类型，底层使用了反射，性能会差些。建议用在低频调用的函数中。
-
-
 
 
 
@@ -118,7 +145,7 @@ logger.SetOptions(logger.WithOutput(logger.GetFileLogWriter("test.log")))
 
 ```go
 // 默认为json格式，并且标准输出为的输出模式不可变更
-logger.SetOptions(logger.WithFormatter("console"))
+logger.SetOptions(logger.WithFormat("console"))
 ```
 
 Format 支持 `console` 和 `json` 2 种格式：
@@ -135,13 +162,36 @@ Format 支持 `console` 和 `json` 2 种格式：
 修改logger字段，返回一个新的logger对象
 
 ```go
+package main
+
+import (
+	"context"
+	"github.com/yuanbaopig/logger"
+	"go.uber.org/zap"
+)
+
 func main() {
+	defer logger.SLogger.Sync()
+
 	// 定义字段
 	lv := logger.WithValues(zap.Int("userID", 10))
+
+	lv.Info("test")
+
 	// 讲logger存储到context中
-	ctx := lv.WithContext(context.Background())
+	ctx := logger.WithContext(context.Background(), lv)
+
 	// 进行context传递
 	PrintString(ctx, "World")
+
+	// 原结构不受影响
+	logger.SLogger.Sugar().Infof("Hello World")
+}
+
+func PrintString(ctx context.Context, str string) {
+	//从context中获取logger
+	lc := logger.FromContext(ctx)
+	lc.Sugar().Infof("Hello %s", str)
 }
 ```
 
