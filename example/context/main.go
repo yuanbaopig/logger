@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	defer logger.SLogger.Sync()
+	defer logger.Log.Sync()
 
 	// 定义字段
 	lv := logger.WithValues(zap.Int("userID", 10))
@@ -21,11 +21,11 @@ func main() {
 	PrintString(ctx, "World")
 
 	// 原结构不受影响
-	logger.SLogger.Sugar().Infof("Hello World")
+	logger.Log.Sugar().Infof("Hello World")
 }
 
 func PrintString(ctx context.Context, str string) {
-	//从context中获取logger
+	// 从context中获取logger
 	lc := logger.FromContext(ctx)
 	lc.Sugar().Infof("Hello %s", str)
 }

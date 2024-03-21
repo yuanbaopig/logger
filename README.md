@@ -6,6 +6,7 @@
 - 支持自定义配置。
 - 支持Caller文件名和行号。
 - 支持输出到标准输出和文件，可以同时输出到多个对象。
+- 支持error级别以上日志输出到指定对象
 - 支持 `JSON` 和 `Console` 两种日志格式。
 - 支持结构化日志记录。
 - **支持Context（业务定制）**
@@ -31,10 +32,9 @@
 
 ```go
 func main() {
-  defer slog.Sync()
   // 制定日志级别，默认为info级别
   logger.SetOptions(logger.WithLevel("debug"))
-  logger.SLogger.Debug("debug")
+  zap.L().Info("test")
 }
 ```
 
@@ -125,14 +125,14 @@ logger.SetOptions(logger.WithLevel("debug"))
 // 修改全局对象字段
 logger.SetOptions(logger.WithFields(zap.Int("userID", 10), zap.String("requestID", "fbf54504")))
 
-// 开启调用信息，默认关闭
+// 开启调用信息，默认开启
 logger.SetOptions(logger.WithDisableCaller(true))
 ```
 
 推荐配置
 
 ```go
-logger.SetOptions(logger.WithLevel("debug"), logger.WithDisableCaller(true))
+logger.SetOptions(logger.WithLevel("debug"))
 ```
 
 制定输出对象
@@ -171,7 +171,7 @@ import (
 )
 
 func main() {
-	defer logger.SLogger.Sync()
+	defer logger.Log.Sync()
 
 	// 定义字段
 	lv := logger.WithValues(zap.Int("userID", 10))
@@ -185,11 +185,11 @@ func main() {
 	PrintString(ctx, "World")
 
 	// 原结构不受影响
-	logger.SLogger.Sugar().Infof("Hello World")
+	logger.Log.Sugar().Infof("Hello World")
 }
 
 func PrintString(ctx context.Context, str string) {
-	//从context中获取logger
+	// 从context中获取logger
 	lc := logger.FromContext(ctx)
 	lc.Sugar().Infof("Hello %s", str)
 }

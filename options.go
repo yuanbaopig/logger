@@ -6,11 +6,11 @@ import (
 
 // Options log config option.
 type Options struct {
-	Level             string
-	DisableCaller     bool
-	Fields            []zap.Field
-	Format            string
-	Development       bool
+	Level         string
+	DisableCaller bool
+	Fields        []zap.Field
+	Format        string
+	//Development       bool
 	DisableStacktrace bool
 	OutputPaths       []string
 	ErrorOutputPaths  []string
@@ -27,12 +27,12 @@ func WithDisableStacktrace(enable bool) Option {
 	}
 }
 
-// WithDevelopment change log development status.
-func WithDevelopment(enable bool) Option {
-	return func(o *Options) {
-		o.Development = enable
-	}
-}
+//// WithDevelopment change log development status.
+//func WithDevelopment(enable bool) Option {
+//	return func(o *Options) {
+//		o.Development = enable
+//	}
+//}
 
 // WithLevel change log level, default info.
 func WithLevel(level string) Option {
@@ -93,7 +93,7 @@ func WithDisableCaller(caller bool) Option {
 
 // WithValues creates a child logger and adds Zap Fields to it.
 func WithValues(keysAndValues ...zap.Field) *zap.Logger {
-	return SLogger.WithValues(keysAndValues...)
+	return Log.WithValues(keysAndValues...)
 }
 
 func (l *log) WithValues(keysAndValues ...zap.Field) *zap.Logger {
