@@ -173,21 +173,6 @@ func (l *log) newLogger() error {
 		encoder = zapcore.NewConsoleEncoder(l.encoderConfig)
 	}
 
-	//for _, fileName := range l.opt.OutputPaths {
-	//	if fileName == "stdout" {
-	//		normalOutputList = append(normalOutputList, zapcore.AddSync(os.Stdout))
-	//		continue
-	//	}
-	//
-	//	LogFile, err = os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	normalOutputList = append(normalOutputList, zapcore.AddSync(LogFile))
-	//
-	//}
-
 	var coreList []zapcore.Core
 	{
 		// general log level for output
@@ -217,20 +202,6 @@ func (l *log) newLogger() error {
 
 	}
 
-	// 使用 Tee 来合并两个 Core
-	//var core zapcore.Core
-	//if len(l.opt.ErrorOutputPaths) != 0 {
-	//	core = zapcore.NewTee(normalCore, errorCore)
-	//} else {
-	//	core = zapcore.NewTee(normalCore)
-	//}
-
-	//if errorCore != nil {
-	//	core = zapcore.NewTee(normalCore, errorCore)
-	//} else {
-	//	core = normalCore
-	//}
-
 	core := zapcore.NewTee(coreList...)
 
 	var zapOpts []zap.Option
@@ -245,6 +216,10 @@ func (l *log) newLogger() error {
 
 	if len(l.opt.Fields) != 0 {
 		zapOpts = append(zapOpts, zap.Fields(l.opt.Fields...))
+	}
+
+	if l.opt.CallerSkip != 0 {
+		zapOpts = append(zapOpts, zap.AddCallerSkip(l.opt.CallerSkip))
 	}
 
 	logger := zap.New(core, zapOpts...)

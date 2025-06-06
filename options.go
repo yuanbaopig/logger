@@ -6,16 +6,16 @@ import (
 
 // Options log config option.
 type Options struct {
-	Level         string
-	DisableCaller bool
-	Fields        []zap.Field
-	Format        string
-	//Development       bool
+	Level             string
+	DisableCaller     bool
+	Fields            []zap.Field
+	Format            string
 	DisableStacktrace bool
 	OutputPaths       []string
 	ErrorOutputPaths  []string
 	EnableColor       bool
 	Name              string
+	CallerSkip        int
 }
 
 type Option func(*Options)
@@ -27,12 +27,15 @@ func WithDisableStacktrace(enable bool) Option {
 	}
 }
 
-//// WithDevelopment change log development status.
-//func WithDevelopment(enable bool) Option {
-//	return func(o *Options) {
-//		o.Development = enable
-//	}
-//}
+// WithAddCallerSkip increases the number of callers skipped by caller annotation
+// (as enabled by the AddCaller option). When building wrappers around the
+// Logger and SugaredLogger, supplying this Option prevents zap from always
+// reporting the wrapper code as the caller.
+func WithAddCallerSkip(skip int) Option {
+	return func(o *Options) {
+		o.CallerSkip = skip
+	}
+}
 
 // WithLevel change log level, default info.
 func WithLevel(level string) Option {
