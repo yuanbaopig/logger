@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"github.com/yuanbaopig/logger"
-	"go.uber.org/zap"
+	"testing"
 )
 
-func main() {
+func TestContext(t *testing.T) {
 	defer logger.Log.Sync()
-
-	// 定义字段
-	lv := logger.WithValues(zap.Int("userID", 10))
+	
+	lv := logger.Log.Logger
 
 	lv.Info("test")
 
@@ -19,9 +18,6 @@ func main() {
 
 	// 进行context传递
 	PrintString(ctx, "World")
-
-	// 原结构不受影响
-	logger.Log.Sugar().Infof("Hello World")
 }
 
 func PrintString(ctx context.Context, str string) {

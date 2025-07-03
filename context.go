@@ -11,13 +11,14 @@ const (
 	logContextKey key = iota
 )
 
-// WithContext returns a copy of context in which the log value is set.
-//func WithContext(ctx context.Context) context.Context {
-//	return SLogger.WithContext(ctx)
-//}
-
 func WithContext(ctx context.Context, l *zap.Logger) context.Context {
 	return context.WithValue(ctx, logContextKey, l)
+}
+
+// WithName adds a new path segment to the logger's name. Segments are joined by
+// periods. By default, Loggers are unnamed.
+func WithName(s string) *zap.Logger {
+	return Log.Named(s)
 }
 
 // FromContext returns the value of the log key on the ctx.

@@ -23,7 +23,6 @@ func New(opts ...Option) *log {
 		opt: &Options{
 			DisableStacktrace: true,
 			OutputPaths:       []string{"stdout"},
-			//ErrorOutputPaths:  []string{"stderr"},
 		},
 	}
 	l.initOptions(opts...)
@@ -32,15 +31,6 @@ func New(opts ...Option) *log {
 		panic(err)
 	}
 
-	return l
-}
-
-// Init user-defined options to build logger.
-func Init(opt *Options) *log {
-	l := &log{opt: opt}
-	if err := l.newLogger(); err != nil {
-		panic(err)
-	}
 	return l
 }
 
@@ -97,6 +87,107 @@ func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 
 func milliSecondsDurationEncoder(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendFloat64(float64(d) / float64(time.Millisecond))
+}
+
+func createWriteSyncersAndCore(paths []string, encoder zapcore.Encoder, levelEnabler zapcore.LevelEnabler) (zapcore.Core, error) {
+	/*
+		var normalOutputList []zapcore.WriteSyncer
+		for _, fileName := range l.opt.OutputPaths {
+			ws, err := openFileWriteSyncer(fileName)
+			if err != nil {
+				return err
+			}
+			normalOutputList = append(normalOutputList, ws)
+		}
+
+		var normalCore zapcore.Core
+		normalCore = zapcore.NewCore(
+			encoder,
+			zapcore.NewMultiWriteSyncer(normalOutputList...),
+			infoLevel,
+		)
+
+
+		var errorCore zapcore.Core
+
+		if len(l.opt.ErrorOutputPaths) > 0 {
+			// error log level for output
+			errorLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+				return lvl >= zapcore.ErrorLevel
+			})
+
+			var errorOutputList []zapcore.WriteSyncer
+			for _, fileName := range l.opt.ErrorOutputPaths {
+				ws, err := openFileWriteSyncer(fileName)
+				if err != nil {
+					return err
+				}
+				errorOutputList = append(errorOutputList, ws)
+			}
+
+			errorCore = zapcore.NewCore(
+				encoder,
+				zapcore.NewMultiWriteSyncer(errorOutputList...),
+				errorLevel,
+			)
+		}
+
+	*/
+	var writeSyncers []zapcore.WriteSyncer
+	for _, fileName := range paths {
+		ws, err := openFileWriteSyncer(fileName)
+		if err != nil {
+			return nil, err
+		}
+		writeSyncers = append(writeSyncers, ws)
+	}
+	core := zapcore.NewCore(
+		encoder,
+		zapcore.NewMultiWriteSyncer(writeSyncers...),
+		levelEnabler,
+	)
+	return core, nil
+}
+
+func openFileWriteSyncer(fileName string) (zapcore.WriteSyncer, error) {
+	if fileName == "stdout" {
+		return zapcore.AddSync(os.Stdout), nil
+	}
+	if fileName == "stderr" {
+		return zapcore.AddSync(os.Stderr), nil
+	}
+
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	return zapcore.AddSync(file), nil
+}
+
+// getEncoderFormat create encoder based on the format as the foundation.
+func getEncoderFormat(format string) string {
+	var encoder string
+
+	switch format {
+	case "json":
+		// console 日志格式
+		encoder = jsonFormat
+	case "console":
+		// json 日志格式
+		encoder = consoleFormat
+	default:
+		encoder = jsonFormat
+	}
+	return encoder
+}
+
+// log logger options
+type log struct {
+	*zap.Logger
+	opt           *Options
+	mu            sync.Mutex
+	encoderConfig zapcore.EncoderConfig
 }
 
 // newLogger constructs a Logger.
@@ -241,107 +332,6 @@ func (l *log) newLogger() error {
 	return nil
 }
 
-func createWriteSyncersAndCore(paths []string, encoder zapcore.Encoder, levelEnabler zapcore.LevelEnabler) (zapcore.Core, error) {
-	/*
-		var normalOutputList []zapcore.WriteSyncer
-		for _, fileName := range l.opt.OutputPaths {
-			ws, err := openFileWriteSyncer(fileName)
-			if err != nil {
-				return err
-			}
-			normalOutputList = append(normalOutputList, ws)
-		}
-
-		var normalCore zapcore.Core
-		normalCore = zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(normalOutputList...),
-			infoLevel,
-		)
-
-
-		var errorCore zapcore.Core
-
-		if len(l.opt.ErrorOutputPaths) > 0 {
-			// error log level for output
-			errorLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-				return lvl >= zapcore.ErrorLevel
-			})
-
-			var errorOutputList []zapcore.WriteSyncer
-			for _, fileName := range l.opt.ErrorOutputPaths {
-				ws, err := openFileWriteSyncer(fileName)
-				if err != nil {
-					return err
-				}
-				errorOutputList = append(errorOutputList, ws)
-			}
-
-			errorCore = zapcore.NewCore(
-				encoder,
-				zapcore.NewMultiWriteSyncer(errorOutputList...),
-				errorLevel,
-			)
-		}
-
-	*/
-	var writeSyncers []zapcore.WriteSyncer
-	for _, fileName := range paths {
-		ws, err := openFileWriteSyncer(fileName)
-		if err != nil {
-			return nil, err
-		}
-		writeSyncers = append(writeSyncers, ws)
-	}
-	core := zapcore.NewCore(
-		encoder,
-		zapcore.NewMultiWriteSyncer(writeSyncers...),
-		levelEnabler,
-	)
-	return core, nil
-}
-
-func openFileWriteSyncer(fileName string) (zapcore.WriteSyncer, error) {
-	if fileName == "stdout" {
-		return zapcore.AddSync(os.Stdout), nil
-	}
-	if fileName == "stderr" {
-		return zapcore.AddSync(os.Stderr), nil
-	}
-
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
-
-	return zapcore.AddSync(file), nil
-}
-
-// getEncoderFormat create encoder based on the format as the foundation.
-func getEncoderFormat(format string) string {
-	var encoder string
-
-	switch format {
-	case "json":
-		// console 日志格式
-		encoder = jsonFormat
-	case "console":
-		// json 日志格式
-		encoder = consoleFormat
-	default:
-		encoder = jsonFormat
-	}
-	return encoder
-}
-
-// log logger options
-type log struct {
-	*zap.Logger
-	opt           *Options
-	mu            sync.Mutex
-	encoderConfig zapcore.EncoderConfig
-}
-
 // initOptions init config option of log.
 func (l *log) initOptions(opts ...Option) {
 	for _, opt := range opts {
@@ -349,12 +339,7 @@ func (l *log) initOptions(opts ...Option) {
 	}
 }
 
-// SetOptions global sugared logger use.
-func SetOptions(opts ...Option) {
-	Log.SetOptions(opts...)
-}
-
-// SetOptions user-defined sugared logger use.
+// SetOptions user reset defined.
 func (l *log) SetOptions(opts ...Option) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -363,12 +348,6 @@ func (l *log) SetOptions(opts ...Option) {
 	if err := l.newLogger(); err != nil {
 		panic(err)
 	}
-}
-
-// WithName adds a new path segment to the logger's name. Segments are joined by
-// periods. By default, Loggers are unnamed.
-func WithName(s string) *zap.Logger {
-	return Log.Named(s)
 }
 
 // LumberjackLogger create a lumberjack log file.
